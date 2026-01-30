@@ -1,10 +1,13 @@
 "use client"
 
 import { slugify } from "@/utils/helper";
+import { Server } from "@/utils/types";
 import { Lightbulb } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import servers from "@/servers.json";
+import serversData from "@/servers.json";
+
+const servers = serversData as Server[];
 
 export default function Properties() {
   const params = useParams();
