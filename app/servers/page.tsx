@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import servers from "@/servers.json";
 import { formatName, relativeTime } from "@/utils/helper";
 import { Pickaxe } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Server = {
   name: string;
@@ -15,9 +15,32 @@ type Server = {
 export default function Servers() {
   const router = useRouter();
 
-  const serversList = servers as Server[];
+  const [serversList, setServersList] = useState<Server[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const anyServerRunning = serversList.some(s => s.isActive);
+
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const res = await fetch("/api/servers", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        setServersList(data);
+      } catch (err) {
+        console.error("Failed to fetch servers", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServers();
+  }, []);
+
+  if (loading) {
+    return <div className="text-sm text-gray-500">Loading servers</div>;
+  }
 
   return (
     <div className="space-y-6">
