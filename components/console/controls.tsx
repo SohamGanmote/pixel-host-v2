@@ -2,6 +2,7 @@
 
 import { Copy, Play, RefreshCcw, StopCircle } from "lucide-react";
 import { FC } from "react";
+import { useRouter } from "next/navigation";
 
 type ControlsProps = {
   handleStart: () => void;
@@ -10,6 +11,8 @@ type ControlsProps = {
 };
 
 const Controls: FC<ControlsProps> = ({ handleStart, serverStatus, slug }) => {
+  const router = useRouter();
+
   const handleStop = async () => {
     try {
       await fetch("/api/stop", {
@@ -17,7 +20,11 @@ const Controls: FC<ControlsProps> = ({ handleStart, serverStatus, slug }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug }),
       });
-      // window.location.reload();
+
+      // auto refresh after 5 seconds
+      setTimeout(() => {
+        router.refresh();
+      }, 5000);
     } catch (err) {
       console.error("Failed to stop server", err);
     }
