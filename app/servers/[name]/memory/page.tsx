@@ -5,17 +5,17 @@ import { Server } from "@/utils/types";
 import { Lightbulb } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import serversData from "@/servers.json";
 
-const servers = serversData as Server[];
-
-export default function Properties() {
+export default function Memory() {
   const params = useParams();
   const worldName = params?.name as string;
   const slug = slugify(worldName);
 
   const [ram, setRam] = useState(1);
   const [serverStatus, setServerStatus] = useState<"running" | "stopped">("stopped");
+
+  const [servers, setServers] = useState<Server[]>([]);
+  const [loadingServers, setLoadingServers] = useState(true);
 
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -55,14 +55,36 @@ export default function Properties() {
   }, [slug]);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug || loadingServers) return;
 
     const server = servers.find((s) => s.name === slug);
 
     if (server) {
       setRam(server.ram_limit);
     }
-  }, [slug]);
+  }, [slug, servers, loadingServers]);
+
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const res = await fetch("/api/servers", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        setServers(data);
+      } catch (e) {
+        console.error("Failed to fetch servers", e);
+      } finally {
+        setLoadingServers(false);
+      }
+    };
+
+    fetchServers();
+  }, []);
+
+  if (loadingServers) {
+    return <p className="text-sm text-gray-500">Loading server config…</p>;
+  }
 
   return (
     <div>
