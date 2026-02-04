@@ -53,5 +53,9 @@ export default function WorldLayout({
     }
   }, [slug, router, serversList, loading]);
 
+  if (loading) {
+    return <div className="text-sm text-gray-500">Loading servers</div>;
+  }
+
   return <div>{children}</div>;
 }
