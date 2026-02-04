@@ -2,7 +2,6 @@
 
 import { getLogColor, slugify } from "@/utils/helper";
 import { Difficulty, Server, ServerLog } from "@/utils/types";
-import servers from "@/servers.json";
 import { TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, FormEvent, useRef, useEffect } from "react";
