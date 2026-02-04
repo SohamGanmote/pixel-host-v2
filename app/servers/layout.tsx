@@ -2,9 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { slugify } from "@/utils/helper";
-import servers from "@/servers.json";
 import { Server } from "@/utils/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function WorldLayout({
   children,
@@ -16,10 +15,29 @@ export default function WorldLayout({
   const worldName = params?.name as string || "";
   const slug = slugify(worldName);
 
-  const serversList = servers as Server[];
+  const [serversList, setServersList] = useState<Server[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!slug) return;
+    const fetchServers = async () => {
+      try {
+        const res = await fetch("/api/servers", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        setServersList(data);
+      } catch (err) {
+        console.error("Failed to fetch servers", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServers();
+  }, []);
+
+  useEffect(() => {
+    if (loading || !slug) return;
 
     const activeServers = serversList.filter((s) => s.isActive);
 
@@ -33,7 +51,7 @@ export default function WorldLayout({
         router.replace("/servers");
       }
     }
-  }, [slug, router, serversList]);
+  }, [slug, router, serversList, loading]);
 
   return <div>{children}</div>;
 }
