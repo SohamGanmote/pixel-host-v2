@@ -10,9 +10,6 @@ import { useState, FormEvent, useRef, useEffect } from "react";
 export default function CreateServer() {
   const router = useRouter();
 
-  const serversList = servers as Server[];
-  const anyServerRunning = serversList.some(s => s.isActive);
-
   const [worldName, setWorldName] = useState("");
   const [seed, setSeed] = useState("");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -23,11 +20,43 @@ export default function CreateServer() {
 
   const [isNewWorldCreated, setIsNewWorldCreated] = useState(false);
 
+  const [serversList, setServersList] = useState<Server[]>([]);
+
   const logsEndRef = useRef<HTMLDivElement | null>(null);
+
+  const anyServerRunning = serversList.some(s => s.isActive);
 
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
+
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const res = await fetch("/api/servers", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        setServersList(data);
+      } catch (err) {
+        console.error("Failed to load servers", err);
+      }
+    };
+
+    fetchServers();
+  }, []);
+
+  useEffect(() => {
+    if (!isNewWorldCreated) return;
+
+    const slug = slugify(worldName);
+
+    const timer = setTimeout(() => {
+      router.push(`/servers/${slug}/console`);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [isNewWorldCreated, router, worldName]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -85,18 +114,6 @@ export default function CreateServer() {
 
     setIsNewWorldCreated(true);
   };
-
-  useEffect(() => {
-    if (!isNewWorldCreated) return;
-
-    const slug = slugify(worldName);
-
-    const timer = setTimeout(() => {
-      router.push(`/servers/${slug}/console`);
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [isNewWorldCreated, router, worldName]);
 
   return <>
     <div className="mb-8">
